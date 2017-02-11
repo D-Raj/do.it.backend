@@ -1,0 +1,2 @@
+DROP DATABASE do_it_dev;
+CREATE DATABASE do_it_dev;
