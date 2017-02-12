@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"bh/do.it/models"
@@ -18,23 +17,23 @@ import (
 func AllActionsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	userID, err := getUserID(r)
 	if err != nil {
-		http.Error(w, http.StatusText(500), 500)
+		HandleError(err, w)
 		return
 	}
 
 	actions, err := models.GetAllActions(userID)
 	if err != nil {
-		http.Error(w, http.StatusText(500), 500)
+		HandleError(err, w)
 		return
 	}
 
 	response, err := json.Marshal(actions)
 	if err != nil {
-		http.Error(w, http.StatusText(500), 500)
+		HandleError(err, w)
 		return
 	}
 
-	fmt.Fprintf(w, string(response))
+	w.Write(response)
 }
 
 // NewActionHandler - create an action given a goal, user, and optional day (unix start of day)
@@ -61,7 +60,7 @@ func NewActionHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 		return
 	}
 
-	fmt.Fprintf(w, "{\"success\":\"ok\"}")
+	w.Write([]byte("{\"success\":\"ok\"}"))
 }
 
 // AllGoalsHandler - get all goals associated with logged in user
@@ -83,16 +82,15 @@ func AllGoalsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params
 		HandleError(err, w)
 	}
 
-	fmt.Fprintf(w, string(response))
+	w.Write(response)
 }
 
 // NewGoalHandler - create a goal given a goal, user, and optional day (unix start of day)
 func NewGoalHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	// userID, err := getUserID(r)
-	// if err != nil {
-	// 	http.Error(w, http.StatusText(500), 500)
-	// }
-	userID := 1
+	userID, err := getUserID(r)
+	if err != nil {
+		http.Error(w, http.StatusText(500), 500)
+	}
 	value, err := getValue(r)
 	if err != nil {
 		HandleError(err, w)
@@ -110,7 +108,7 @@ func NewGoalHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params)
 		return
 	}
 
-	http.Redirect(w, r, "/me", http.StatusTemporaryRedirect)
+	w.Write([]byte("{\"success\":\"ok\"}"))
 }
 
 func getUserID(r *http.Request) (int, error) {
@@ -119,7 +117,6 @@ func getUserID(r *http.Request) (int, error) {
 		return 0, err
 	}
 
-	// type-assert because javascript- i mean interface{}- is dangerous
 	val := session.Values["user"]
 	user, ok := val.(*models.User)
 	if !ok {
