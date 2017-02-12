@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/gob"
 	"fmt"
 	"log"
 	"net/http"
@@ -8,11 +9,19 @@ import (
 	"bh/do.it/models"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/context"
+	"github.com/gorilla/sessions"
 	"github.com/jmoiron/sqlx"
 	"github.com/julienschmidt/httprouter"
 )
 
 var db *sqlx.DB
+var store = sessions.NewCookieStore([]byte("this is llthe hook. it's catchy. you like it."))
+var sessionName = "i-like-the-grooves.but-i-digress."
+
+func init() {
+	gob.Register(&models.User{})
+}
 
 func main() {
 	models.InitDB("do_it_dev:do_it_dev@/do_it_dev")
@@ -23,20 +32,19 @@ func main() {
 	router.GET("/", DebugIndex) // TEMP for dev/debug
 	router.GET("/GoogleLogin", HandleGoogleLogin)
 	router.GET("/GoogleCallback", HandleGoogleCallback)
+	router.GET("/logout", LogoutHandler)
 
-	/* actions/goals */
-	// router.GET("/me", allActionGoals)
-	// router.POST("/me", newAction)
+	/* actions read/write */
+	router.GET("/me", AllActionsHandler)
+	router.POST("/me", NewActionHandler)
 
-	/* goals */
-	// router.GET("me/goals", allGoals)
-	// router.POST("me/goals", newGoal)
+	/* goals read/write */
+	router.GET("/me/goals", AllGoalsHandler)
+	router.POST("/me/goals", NewGoalHandler)
+
+	// authHandler := NewAuthHandler(router)
 
 	fmt.Println("Server listening on http://localhost:3000")
-	log.Fatal(http.ListenAndServe(":3000", router))
+	// log.Fatal(http.ListenAndServe(":3000", context.ClearHandler(authHandler)))
+	log.Fatal(http.ListenAndServe(":3000", context.ClearHandler(router)))
 }
-
-// DebugIndex - comment for lint shut up
-// func DebugIndex(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-// 	models.AddUser("123456789", "NEW_SOURCE", "Leaf Suarez", "leaf@suarez.net")
-// }

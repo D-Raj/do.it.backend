@@ -28,7 +28,7 @@ CREATE TABLE actions (
   id INT NOT NULL AUTO_INCREMENT NOT NULL,
   user_id INT NOT NULL,
   goal_id INT NOT NULL,
-  day DATE NOT NULL,
+  day INT NOT NULL,
   PRIMARY KEY (id),
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (goal_id) REFERENCES goals(id),
