@@ -16,7 +16,7 @@ import (
 )
 
 var db *sqlx.DB
-var store = sessions.NewCookieStore([]byte("this is llthe hook. it's catchy. you like it."))
+var store = sessions.NewCookieStore([]byte("this is the hook. it's catchy. you like it."))
 var sessionName = "i-like-the-grooves.but-i-digress."
 
 func init() {
@@ -42,9 +42,8 @@ func main() {
 	router.GET("/me/goals", AllGoalsHandler)
 	router.POST("/me/goals", NewGoalHandler)
 
-	// authHandler := NewAuthHandler(router)
+	authHandler := NewAuthHandler(router)
 
 	fmt.Println("Server listening on http://localhost:3000")
-	// log.Fatal(http.ListenAndServe(":3000", context.ClearHandler(authHandler)))
-	log.Fatal(http.ListenAndServe(":3000", context.ClearHandler(router)))
+	log.Fatal(http.ListenAndServe(":3000", context.ClearHandler(authHandler)))
 }

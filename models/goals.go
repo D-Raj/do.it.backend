@@ -12,7 +12,7 @@ type Goal struct {
 // GetAllGoals - get goals (as seen in db) for a given user
 func GetAllGoals(userID int) ([]*Goal, error) {
 	query := `
-                SELECT goals.*
+                SELECT goals.*, users_goals.weight
                 FROM goals
                 INNER JOIN users_goals
                         ON users_goals.goal_id = goals.id
@@ -47,13 +47,16 @@ func GetAllGoals(userID int) ([]*Goal, error) {
 
 // CreateGoal - create an goal for a logged in user
 func CreateGoal(userID int, value string, weight int) (int, error) {
-	goalID, err := getGoalID(value, weight)
+	goalID, err := getGoalID(value)
 	if err != nil {
 		return 0, err
 	}
 
-	query := `INSERT INTO users_goals (user_id, goal_id) VALUES (?, ?)`
-	result, err := db.Exec(query, userID, goalID)
+	query := `
+                INSERT INTO users_goals (user_id, goal_id, weight) VALUES (?, ?, ?)
+                ON DUPLICATE KEY UPDATE weight = ?
+        `
+	result, err := db.Exec(query, userID, goalID, weight, weight)
 	if err != nil {
 		return 0, err
 	}
@@ -65,18 +68,18 @@ func CreateGoal(userID int, value string, weight int) (int, error) {
 	return int(insertID), nil
 }
 
-func getGoalID(value string, weight int) (int, error) {
-	query := `SELECT id FROM goals WHERE value = ? and weight = ?`
+func getGoalID(value string) (int, error) {
+	query := `SELECT id FROM goals WHERE value = ?`
 	var goalID int
-	err := db.QueryRowx(query, value, weight).Scan(&goalID)
+	err := db.QueryRowx(query, value).Scan(&goalID)
 	if err == nil {
 		return int(goalID), nil
 	} else if err != sql.ErrNoRows {
 		return 0, err
 	}
 
-	query = `INSERT INTO goals (value, weight) VALUES (?, ?)`
-	result, err := db.Exec(query, value, weight)
+	query = `INSERT INTO goals (value) VALUES (?)`
+	result, err := db.Exec(query, value)
 	if err != nil {
 		return 0, err
 	}

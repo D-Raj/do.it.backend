@@ -41,27 +41,23 @@ func AllActionsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Para
 func NewActionHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	userID, err := getUserID(r)
 	if err != nil {
-		fmt.Println(err)
-		http.Error(w, http.StatusText(501), 501)
+		HandleError(err, w)
 		return
 	}
 	goalID, err := getGoalID(r)
 	if err != nil {
-		fmt.Println(err)
-		http.Error(w, http.StatusText(502), 502)
+		HandleError(err, w)
 		return
 	}
 	day, err := getDay(r)
 	if err != nil {
-		fmt.Println(err)
-		http.Error(w, http.StatusText(503), 503)
+		HandleError(err, w)
 		return
 	}
 
 	_, err = models.CreateAction(userID, goalID, day)
 	if err != nil {
-		fmt.Println(err)
-		http.Error(w, http.StatusText(504), 504)
+		HandleError(err, w)
 		return
 	}
 
@@ -72,17 +68,19 @@ func NewActionHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 func AllGoalsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	userID, err := getUserID(r)
 	if err != nil {
-		http.Error(w, http.StatusText(504), 504)
+		HandleError(err, w)
+		return
 	}
 
 	goals, err := models.GetAllGoals(userID)
 	if err != nil {
-		http.Error(w, http.StatusText(505), 505)
+		HandleError(err, w)
+		return
 	}
 
 	response, err := json.Marshal(goals)
 	if err != nil {
-		http.Error(w, http.StatusText(506), 506)
+		HandleError(err, w)
 	}
 
 	fmt.Fprintf(w, string(response))
@@ -90,27 +88,25 @@ func AllGoalsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params
 
 // NewGoalHandler - create a goal given a goal, user, and optional day (unix start of day)
 func NewGoalHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	userID, err := getUserID(r)
-	if err != nil {
-		http.Error(w, http.StatusText(500), 500)
-	}
+	// userID, err := getUserID(r)
+	// if err != nil {
+	// 	http.Error(w, http.StatusText(500), 500)
+	// }
+	userID := 1
 	value, err := getValue(r)
 	if err != nil {
-		http.Error(w, http.StatusText(501), 501)
+		HandleError(err, w)
 		return
 	}
 	weight, err := getWeight(r)
 	if err != nil {
-		http.Error(w, http.StatusText(502), 502)
+		HandleError(err, w)
 		return
 	}
 
 	_, err = models.CreateGoal(userID, value, weight)
 	if err != nil {
-		fmt.Print("FUCK!!!!!!")
-		fmt.Print(err)
-		fmt.Print("\n\n\n\n\n\n")
-		http.Error(w, http.StatusText(503), 503)
+		HandleError(err, w)
 		return
 	}
 

@@ -19,9 +19,8 @@ CREATE TABLE users (
 CREATE TABLE goals (
   id INT NOT NULL AUTO_INCREMENT NOT NULL,
   value VARCHAR(255) NOT NULL,
-  weight INT NOT NULL,
   PRIMARY KEY (id),
-  UNIQUE KEY goals_user_id_value (value, weight)
+  UNIQUE KEY goals_user_id_value (value)
 );
 
 CREATE TABLE actions (
@@ -39,6 +38,7 @@ CREATE TABLE users_goals (
   id INT NOT NULL AUTO_INCREMENT,
   user_id INT NOT NULL,
   goal_id INT NOT NULL,
+  weight INT NOT NULL,
   PRIMARY KEY (id),
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (goal_id) REFERENCES goals(id),

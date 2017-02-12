@@ -11,16 +11,16 @@ type Action struct {
 	Day        string `json:"day"`         // actions.day
 	GoalID     int    `json:"goal_id"`     // goals.id
 	GoalValue  string `json:"goal_value"`  // goals.value
-	GoalWeight int    `json:"goal_weight"` // goals.weight
+	GoalWeight int    `json:"goal_weight"` // users_goals.weight
 }
 
 // GetAllActions - get Actions (actions/goals in db) for a given user
 func GetAllActions(userID int) ([]*Action, error) {
 	query := `
-                SELECT
-                        actions.user_id, actions.day, goals.id, goals.value, goals.weight
-                FROM actions INNER JOIN goals
-                        ON actions.goal_id = goals.id
+                SELECT actions.user_id, actions.day, goals.id, goals.value, users_goals.weight
+                FROM actions
+                INNER JOIN goals ON actions.goal_id = goals.id
+                INNER JOIN users_goals ON users_goals.goal_id = goals.id AND users_goals.user_id = actions.user_id
                 WHERE actions.user_id = ?
         `
 	rows, err := db.Query(query, userID)
