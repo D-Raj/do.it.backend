@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"bh/do.it/middleware"
 	"bh/do.it/models"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -42,8 +43,9 @@ func main() {
 	router.GET("/me/goals", AllGoalsHandler)
 	router.POST("/me/goals", NewGoalHandler)
 
-	authHandler := NewAuthHandler(router)
+	authHandler := middleware.NewAuthHandler(router, sessionName, store)
+	loggerHandler := middleware.NewLoggerHandler(authHandler)
 
 	fmt.Println("Server listening on http://localhost:3000")
-	log.Fatal(http.ListenAndServe(":3000", context.ClearHandler(authHandler)))
+	log.Fatal(http.ListenAndServe(":3000", context.ClearHandler(loggerHandler)))
 }

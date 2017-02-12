@@ -28,12 +28,6 @@ var (
 		},
 		Endpoint: google.Endpoint,
 	}
-
-	skipAuthRoutes = map[string]bool{
-		"/":               true,
-		"/GoogleLogin":    true,
-		"/GoogleCallback": true,
-	}
 )
 
 /** ******************************************************************** /
@@ -118,52 +112,6 @@ func HandleGoogleCallback(w http.ResponseWriter, r *http.Request, _ httprouter.P
 
 	http.Redirect(w, r, "/me", http.StatusTemporaryRedirect)
 }
-
-/** ******************************************************************** /
-  Authentication Middleware
- ********************************************************************* **/
-
-// AuthHandler - middleware to protect all routes not in allowedPaths
-type AuthHandler struct {
-	handler http.Handler
-}
-
-// NewAuthHandler - return an instance of our AuthHandler
-func NewAuthHandler(handler http.Handler) *AuthHandler {
-	return &AuthHandler{handler: handler}
-}
-
-func (a *AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-
-	path := r.URL.Path
-
-	// skip authentication because of route (login)
-	if skipAuthRoutes[path] == true {
-		a.handler.ServeHTTP(w, r)
-		return
-	}
-
-	session, err := store.Get(r, sessionName)
-	if err != nil {
-		fmt.Println(err)
-		http.Error(w, http.StatusText(500), 500)
-		return
-	}
-
-	// user must be logged in to see these routes
-	user := session.Values["user"]
-	if _, ok := user.(*models.User); ok {
-		a.handler.ServeHTTP(w, r)
-		return
-	}
-
-	// unauthorized. user is not logged in.
-	w.WriteHeader(403)
-}
-
-/** ******************************************************************** /
-  Authentication Middleware
- ********************************************************************* **/
 
 // LogoutHandler - log user out, destroy the session
 func LogoutHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
