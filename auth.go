@@ -19,7 +19,7 @@ var (
 	oauthStateString = "random"
 
 	googleOauthConfig = &oauth2.Config{
-		RedirectURL:  "http://localhost:3000/GoogleCallback",
+		RedirectURL:  "http://localhost:3000/auth/GoogleCallback",
 		ClientID:     os.Getenv("GOOGLE_KEY"),
 		ClientSecret: os.Getenv("GOOGLE_SECRET"),
 		Scopes: []string{
@@ -29,27 +29,6 @@ var (
 		Endpoint: google.Endpoint,
 	}
 )
-
-/** ******************************************************************** /
-  Dev/Debug bullshit. Remove when possible
- ********************************************************************* **/
-
-// DebugIndex - route for login while working on backend. Remove when frontend is built
-func DebugIndex(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	// session this shit
-	session, err := store.Get(r, sessionName)
-	if err != nil {
-		fmt.Println(err)
-		http.Error(w, http.StatusText(500), 500)
-	}
-	user := session.Values["user"]
-	if user != nil {
-		http.Redirect(w, r, "/me", http.StatusTemporaryRedirect)
-	}
-
-	htmlIndex := `<html><body><a href="/GoogleLogin">Log in with Google</a></body></html>`
-	fmt.Fprintf(w, htmlIndex)
-}
 
 /** ******************************************************************** /
   Google Handlers
@@ -79,6 +58,10 @@ func HandleGoogleCallback(w http.ResponseWriter, r *http.Request, _ httprouter.P
 	}
 
 	response, err := http.Get("https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + token.AccessToken)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, http.StatusText(500), 500)
+	}
 
 	defer response.Body.Close()
 	contents, err := ioutil.ReadAll(response.Body)
@@ -110,7 +93,7 @@ func HandleGoogleCallback(w http.ResponseWriter, r *http.Request, _ httprouter.P
 	session.Values["user"] = user
 	session.Save(r, w)
 
-	http.Redirect(w, r, "/me", http.StatusTemporaryRedirect)
+	http.Redirect(w, r, "/api/me", http.StatusTemporaryRedirect)
 }
 
 // LogoutHandler - log user out, destroy the session

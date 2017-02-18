@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"bh/do.it/middleware"
 	"bh/do.it/models"
@@ -25,27 +26,40 @@ func init() {
 }
 
 func main() {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "3000"
+	}
+
 	models.InitDB("do_it_dev:do_it_dev@/do_it_dev")
 
-	router := httprouter.New()
+	apiRouter := httprouter.New()
+	authRouter := httprouter.New()
 
 	/* authentication */
-	router.GET("/", DebugIndex) // TEMP for dev/debug
-	router.GET("/GoogleLogin", HandleGoogleLogin)
-	router.GET("/GoogleCallback", HandleGoogleCallback)
-	router.GET("/logout", LogoutHandler)
+	authRouter.GET("/auth/GoogleLogin", HandleGoogleLogin)
+	authRouter.GET("/auth/GoogleCallback", HandleGoogleCallback)
+	authRouter.GET("/auth/logout", LogoutHandler)
 
 	/* actions read/write */
-	router.GET("/me", AllActionsHandler)
-	router.POST("/me", NewActionHandler)
+	apiRouter.GET("/api/me", AllActionsHandler)
+	apiRouter.POST("/api/me", NewActionHandler)
 
 	/* goals read/write */
-	router.GET("/me/goals", AllGoalsHandler)
-	router.POST("/me/goals", NewGoalHandler)
+	apiRouter.GET("/api/me/goals", AllGoalsHandler)
+	apiRouter.POST("/api/me/goals", NewGoalHandler)
 
-	authHandler := middleware.NewAuthHandler(router, sessionName, store)
-	loggerHandler := middleware.NewLoggerHandler(authHandler)
+	loggerHandler := middleware.NewLoggerHandler(authRouter)
+	setHeadersHandler := middleware.NewSetHeadersHandler(loggerHandler)
+	authHandler := middleware.NewAuthHandler(setHeadersHandler, sessionName, store)
 
-	fmt.Println("Server listening on http://localhost:3000")
-	log.Fatal(http.ListenAndServe(":3000", context.ClearHandler(loggerHandler)))
+	apiHandler := apiRouter // uneccesary for performance. reassign for pretty read
+
+	mux := http.NewServeMux()
+	mux.Handle("/auth/", authHandler)
+	mux.Handle("/api/", apiHandler)
+	mux.HandleFunc("/", StaticHandler)
+
+	fmt.Println("Server listening on http://localhost:" + port)
+	log.Fatal(http.ListenAndServe(":"+port, context.ClearHandler(mux)))
 }

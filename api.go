@@ -70,7 +70,6 @@ func AllGoalsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params
 		HandleError(err, w)
 		return
 	}
-
 	goals, err := models.GetAllGoals(userID)
 	if err != nil {
 		HandleError(err, w)
@@ -80,6 +79,7 @@ func AllGoalsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params
 	response, err := json.Marshal(goals)
 	if err != nil {
 		HandleError(err, w)
+		return
 	}
 
 	w.Write(response)

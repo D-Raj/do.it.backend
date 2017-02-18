@@ -7,7 +7,7 @@ import (
 )
 
 // HandleError - log error, send http response if possible
-func HandleError(err error, w http.ResponseWriter) {
+func HandleError(err error, w http.ResponseWriter) int {
 	if w != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -15,4 +15,5 @@ func HandleError(err error, w http.ResponseWriter) {
 	} else {
 		log.Fatal(err)
 	}
+	return 1
 }

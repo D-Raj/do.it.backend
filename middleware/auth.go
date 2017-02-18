@@ -8,12 +8,6 @@ import (
 	"github.com/gorilla/sessions"
 )
 
-var skipAuthRoutes = map[string]bool{
-	"/":               true,
-	"/GoogleLogin":    true,
-	"/GoogleCallback": true,
-}
-
 // AuthHandler - middleware to protect all routes not in allowedPaths
 type AuthHandler struct {
 	handler     http.Handler
@@ -27,8 +21,12 @@ func NewAuthHandler(handler http.Handler, sessionName string, store *sessions.Co
 }
 
 func (a *AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-
 	path := r.URL.Path
+	skipAuthRoutes := map[string]bool{
+		"/":                    true,
+		"/auth/GoogleLogin":    true,
+		"/auth/GoogleCallback": true,
+	}
 
 	// skip authentication because of route (login)
 	if skipAuthRoutes[path] == true {
