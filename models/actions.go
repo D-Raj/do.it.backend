@@ -1,28 +1,33 @@
 package models
 
-import (
-	"database/sql"
-	"fmt"
-)
+import "database/sql"
 
 // Action - an action performed by a user on a particular day
 type Action struct {
-	UserID     int    `json:"user_id"`     // actions.user_id
-	Day        string `json:"day"`         // actions.day
-	GoalID     int    `json:"goal_id"`     // goals.id
-	GoalValue  string `json:"goal_value"`  // goals.value
-	GoalWeight int    `json:"goal_weight"` // users_goals.weight
+	UserID   int    `json:"user_id"`   // actions.user_id
+	GoalID   int    `json:"goal_id"`   // actions.goal_id
+	Day      int64  `json:"day"`       // actions.day
+	Weight   int    `json:"weight"`    // actions.weight
+	GoalName string `json:"goal_name"` // goals.name
+	Achieved int    `json:"achieved"`  // actions.achieved
 }
 
 // GetAllActions - get Actions (actions/goals in db) for a given user
 func GetAllActions(userID int) ([]*Action, error) {
 	query := `
-                SELECT actions.user_id, actions.day, goals.id, goals.value, users_goals.weight
+                SELECT
+                        actions.user_id,
+                        actions.goal_id,
+                        actions.day,
+                        goals.name,
+                        actions.weight,
+                        actions.achieved
                 FROM actions
-                INNER JOIN goals ON actions.goal_id = goals.id
-                INNER JOIN users_goals ON users_goals.goal_id = goals.id AND users_goals.user_id = actions.user_id
+                INNER JOIN goals
+                ON actions.goal_id = goals.id
                 WHERE actions.user_id = ?
         `
+
 	rows, err := db.Query(query, userID)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, err
@@ -33,10 +38,11 @@ func GetAllActions(userID int) ([]*Action, error) {
 		action := new(Action)
 		err := rows.Scan(
 			&action.UserID,
-			&action.Day,
 			&action.GoalID,
-			&action.GoalValue,
-			&action.GoalWeight)
+			&action.Day,
+			&action.GoalName,
+			&action.Weight,
+			&action.Achieved)
 		if err != nil {
 			return nil, err
 		}
@@ -51,16 +57,32 @@ func GetAllActions(userID int) ([]*Action, error) {
 }
 
 // CreateAction - create an action for a logged in user
-func CreateAction(userID int, goalID int, day int) (int, error) {
-	fmt.Printf("userID: %d, goalID: %d, day: %d\n\n\n", userID, goalID, day)
+func CreateAction(action Action) (int, error) {
 	query := `
                 INSERT INTO actions
-                        (user_id, goal_id, day)
-                VALUES (?, ?, ?)
+                        (user_id, goal_id, day, weight, achieved)
+                VALUES (?, ?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                        user_id = ?,
+                        goal_id = ?,
+                        day = ?,
+                        weight_id = ?,
+                        achieved = ?;
         `
-	id, err := db.MustExec(query, userID, goalID, day).LastInsertId()
+	_, err := db.MustExec(
+		query,
+		action.UserID,
+		action.GoalID,
+		action.Day,
+		action.Weight,
+		action.Achieved,
+		action.UserID,
+		action.GoalID,
+		action.Day,
+		action.Weight,
+		action.Achieved).LastInsertId()
 	if err != nil {
 		return 0, err
 	}
-	return int(id), nil
+	return 1, nil
 }

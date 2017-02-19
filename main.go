@@ -42,18 +42,17 @@ func main() {
 	authRouter.GET("/auth/logout", LogoutHandler)
 
 	/* actions read/write */
-	apiRouter.GET("/api/me", AllActionsHandler)
-	apiRouter.POST("/api/me", NewActionHandler)
+	apiRouter.GET("/api/me/actions", AllActionsHandler)
+	apiRouter.POST("/api/me/actions", NewActionHandler)
 
-	/* goals read/write */
-	apiRouter.GET("/api/me/goals", AllGoalsHandler)
-	apiRouter.POST("/api/me/goals", NewGoalHandler)
+	/* days read (aggregate activity for the past year) */
+	apiRouter.GET("/api/me", DaysHandler)
 
-	loggerHandler := middleware.NewLoggerHandler(authRouter)
+	loggerHandler := middleware.NewLoggerHandler(apiRouter)
 	setHeadersHandler := middleware.NewSetHeadersHandler(loggerHandler)
-	authHandler := middleware.NewAuthHandler(setHeadersHandler, sessionName, store)
+	apiHandler := middleware.NewAuthHandler(setHeadersHandler, sessionName, store)
 
-	apiHandler := apiRouter // uneccesary for performance. reassign for pretty read
+	authHandler := middleware.NewAuthHandler(authRouter, sessionName, store)
 
 	mux := http.NewServeMux()
 	mux.Handle("/auth/", authHandler)

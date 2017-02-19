@@ -18,29 +18,20 @@ CREATE TABLE users (
 
 CREATE TABLE goals (
   id INT NOT NULL AUTO_INCREMENT NOT NULL,
-  value VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
   PRIMARY KEY (id),
-  UNIQUE KEY goals_user_id_value (value)
+  UNIQUE KEY goals_user_id_value (name)
 );
 
 CREATE TABLE actions (
   id INT NOT NULL AUTO_INCREMENT NOT NULL,
   user_id INT NOT NULL,
   goal_id INT NOT NULL,
+  weight INT NOT NULL,
   day INT NOT NULL,
+  achieved BOOLEAN DEFAULT false,
   PRIMARY KEY (id),
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (goal_id) REFERENCES goals(id),
   UNIQUE KEY days_user_id_goal_id_day (user_id, goal_id, day)
-);
-
-CREATE TABLE users_goals (
-  id INT NOT NULL AUTO_INCREMENT,
-  user_id INT NOT NULL,
-  goal_id INT NOT NULL,
-  weight INT NOT NULL,
-  PRIMARY KEY (id),
-  FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (goal_id) REFERENCES goals(id),
-  UNIQUE KEY users_goals_user_id_goal_id (user_id, goal_id)
 );
