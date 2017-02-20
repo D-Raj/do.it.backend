@@ -4,10 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 
 	"bh/do.it/models"
-
-	"strconv"
 
 	"github.com/jinzhu/now"
 	"github.com/julienschmidt/httprouter"
@@ -34,7 +33,7 @@ func DaysHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	today := now.BeginningOfDay().Unix()
 	year := make([]models.Day, 0)
 	indexLookup := make(map[int64]int)
-	for i := 0; i < daysInYear; i++ {
+	for i := 0; i < (daysInYear - 1); i++ {
 		date := today - int64((i * secondsInDay))
 		day := models.Day{
 			Date:  date,
@@ -121,6 +120,54 @@ func NewActionHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 	}
 
 	_, err = models.CreateAction(action)
+	if err != nil {
+		HandleError(err, w)
+		return
+	}
+
+	w.Write([]byte("{\"success\":\"ok\"}"))
+}
+
+// AllGoalsHandler - get all goals associated with logged in user
+func AllGoalsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	userID, err := getUserID(r)
+	if err != nil {
+		HandleError(err, w)
+		return
+	}
+	goals, err := models.GetAllGoals(userID)
+	if err != nil {
+		HandleError(err, w)
+		return
+	}
+
+	response, err := json.Marshal(goals)
+	if err != nil {
+		HandleError(err, w)
+		return
+	}
+
+	w.Write(response)
+}
+
+// NewGoalHandler - create a goal given a goal, user, and optional day (unix start of day)
+func NewGoalHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	userID, err := getUserID(r)
+	if err != nil {
+		http.Error(w, http.StatusText(500), 500)
+	}
+	value, err := getValue(r)
+	if err != nil {
+		HandleError(err, w)
+		return
+	}
+	weight, err := getWeight(r)
+	if err != nil {
+		HandleError(err, w)
+		return
+	}
+
+	_, err = models.CreateGoal(userID, value, weight)
 	if err != nil {
 		HandleError(err, w)
 		return

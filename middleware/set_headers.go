@@ -23,7 +23,8 @@ func (h *SetHeadersHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:4000")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	h.handler.ServeHTTP(w, r)
 }

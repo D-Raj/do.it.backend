@@ -45,6 +45,10 @@ func main() {
 	apiRouter.GET("/api/me/actions", AllActionsHandler)
 	apiRouter.POST("/api/me/actions", NewActionHandler)
 
+	/* goals read/write */
+	apiRouter.GET("/api/me/goals", AllGoalsHandler)
+	apiRouter.POST("/api/me/goals", NewGoalHandler)
+
 	/* days read (aggregate activity for the past year) */
 	apiRouter.GET("/api/me", DaysHandler)
 
