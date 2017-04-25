@@ -8,6 +8,11 @@ INSERT INTO goals (name) VALUES ('good food');
 INSERT INTO goals (name) VALUES ('!degenerecy');
 INSERT INTO goals (name) VALUES ('productivity');
 
+INSERT INTO active_goals (user_id, goal_id, weight) VALUES (1, 1, 1);
+INSERT INTO active_goals (user_id, goal_id, weight) VALUES (1, 2, 2);
+INSERT INTO active_goals (user_id, goal_id, weight) VALUES (1, 3, 5);
+INSERT INTO active_goals (user_id, goal_id, weight) VALUES (1, 4, 4);
+
 INSERT INTO actions (user_id, goal_id, day, weight, achieved) VALUES (1, 1, 1486800000, 1, true);
 INSERT INTO actions (user_id, goal_id, day, weight, achieved) VALUES (1, 2, 1486800000, 1, true);
 INSERT INTO actions (user_id, goal_id, day, weight, achieved) VALUES (1, 1, 1486886400, 1, false);

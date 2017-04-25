@@ -42,16 +42,18 @@ func main() {
 	authRouter.GET("/auth/logout", LogoutHandler)
 
 	/* actions read/write */
-	apiRouter.GET("/api/me/actions", AllActionsHandler)
+	apiRouter.GET("/api/me/actions", ActionsHandler)
 	apiRouter.POST("/api/me/actions", NewActionHandler)
 
 	/* goals read/write */
-	apiRouter.GET("/api/me/goals", AllGoalsHandler)
+	apiRouter.GET("/api/me/goals", ActiveGoalsHandler)
 	apiRouter.POST("/api/me/goals", NewGoalHandler)
 
 	/* days read (aggregate activity for the past year) */
 	apiRouter.GET("/api/me", DaysHandler)
 
+	/* middlewares wrapping */
+	// FIXME: implement a nicer way to wrap middlewares
 	loggerHandler := middleware.NewLoggerHandler(apiRouter)
 	setHeadersHandler := middleware.NewSetHeadersHandler(loggerHandler)
 	apiHandler := middleware.NewAuthHandler(setHeadersHandler, sessionName, store)

@@ -58,15 +58,20 @@ func DaysHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	w.Write(response)
 }
 
-// AllActionsHandler - get all actions associated with logged in user
-func AllActionsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+// ActionsHandler - get all actions associated with logged in user on a particular day
+func ActionsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	userID, err := getUserID(r)
 	if err != nil {
 		HandleError(err, w)
 		return
 	}
+	date, err := getDate(r, 0)
+	if err != nil {
+		HandleError(err, w)
+		return
+	}
 
-	actions, err := models.GetAllActions(userID)
+	actions, err := models.GetActions(userID, date)
 	if err != nil {
 		HandleError(err, w)
 		return
@@ -93,7 +98,7 @@ func NewActionHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 		HandleError(err, w)
 		return
 	}
-	day, err := getDay(r)
+	date, err := getDate(r, -1)
 	if err != nil {
 		HandleError(err, w)
 		return
@@ -113,7 +118,7 @@ func NewActionHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 	action := models.Action{
 		UserID:   userID,
 		GoalID:   goalID,
-		Day:      day,
+		Date:     date,
 		Weight:   weight,
 		GoalName: name,
 		Achieved: achieved,
@@ -128,14 +133,14 @@ func NewActionHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 	w.Write([]byte("{\"success\":\"ok\"}"))
 }
 
-// AllGoalsHandler - get all goals associated with logged in user
-func AllGoalsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+// ActiveGoalsHandler - get all goals associated with logged in user
+func ActiveGoalsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	userID, err := getUserID(r)
 	if err != nil {
 		HandleError(err, w)
 		return
 	}
-	goals, err := models.GetAllGoals(userID)
+	goals, err := models.GetActiveGoals(userID)
 	if err != nil {
 		HandleError(err, w)
 		return
@@ -200,17 +205,21 @@ func getGoalID(r *http.Request) (int, error) {
 	return int(goalID), nil
 }
 
-func getDay(r *http.Request) (int64, error) {
-	dayString := r.FormValue("day")
-	if dayString == "" {
-		day := now.BeginningOfDay().Unix()
-		return day, nil
+func getDate(r *http.Request, defaultValue int64) (int64, error) {
+	dateString := r.FormValue("date")
+	if dateString == "" {
+		if defaultValue == -1 {
+			date := now.BeginningOfDay().Unix()
+			return date, nil
+		}
+		date := defaultValue
+		return date, nil
 	}
-	day, err := strconv.ParseInt(dayString, 10, 32)
+	date, err := strconv.ParseInt(dateString, 10, 32)
 	if err != nil {
 		return 0, nil
 	}
-	return day, nil
+	return date, nil
 }
 
 func getValue(r *http.Request) (string, error) {

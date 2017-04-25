@@ -2,7 +2,7 @@ CREATE TABLE user_sources (
   id INT NOT NULL AUTO_INCREMENT,
   name varchar(50) NOT NULL,
   PRIMARY KEY (id),
-  UNIQUE KEY `user_sources_name` (`name`)
+  UNIQUE KEY user_sources_name (name)
 );
 
 CREATE TABLE users (
@@ -13,14 +13,25 @@ CREATE TABLE users (
   email VARCHAR(255) NOT NULL,
   PRIMARY KEY (id),
   FOREIGN KEY (user_source_id) REFERENCES user_sources(id),
-  UNIQUE KEY users_external_id_source (external_id, user_source_id)
+  UNIQUE KEY users_external_id_user_source_id (external_id, user_source_id)
 );
 
 CREATE TABLE goals (
   id INT NOT NULL AUTO_INCREMENT NOT NULL,
   name VARCHAR(255) NOT NULL,
   PRIMARY KEY (id),
-  UNIQUE KEY goals_user_id_value (name)
+  UNIQUE KEY goals_name (name)
+);
+
+CREATE TABLE active_goals (
+        id INT NOT NULL AUTO_INCREMENT,
+        user_id INT NOT NULL,
+        goal_id INT NOT NULL,
+        weight INT NOT NULL,
+        PRIMARY KEY (id),
+        FOREIGN KEY (user_id) REFERENCES users(id),
+        FOREIGN KEY (goal_id) REFERENCES goals(id),
+        UNIQUE KEY active_goals_user_id_goal_id (user_id, goal_id)
 );
 
 CREATE TABLE actions (
@@ -33,5 +44,5 @@ CREATE TABLE actions (
   PRIMARY KEY (id),
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (goal_id) REFERENCES goals(id),
-  UNIQUE KEY days_user_id_goal_id_day (user_id, goal_id, day)
+  UNIQUE KEY actions_user_id_goal_id_day (user_id, goal_id, day)
 );
