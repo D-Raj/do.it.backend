@@ -161,7 +161,7 @@ func NewGoalHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params)
 	if err != nil {
 		http.Error(w, http.StatusText(500), 500)
 	}
-	value, err := getValue(r)
+	name, err := getName(r)
 	if err != nil {
 		HandleError(err, w)
 		return
@@ -172,7 +172,7 @@ func NewGoalHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params)
 		return
 	}
 
-	_, err = models.CreateGoal(userID, value, weight)
+	_, err = models.CreateGoal(userID, name, weight)
 	if err != nil {
 		HandleError(err, w)
 		return
@@ -222,7 +222,7 @@ func getDate(r *http.Request, defaultValue int64) (int64, error) {
 	return date, nil
 }
 
-func getValue(r *http.Request) (string, error) {
+func getName(r *http.Request) (string, error) {
 	value := r.FormValue("value")
 	if value == "" {
 		return "", errors.New("Invalid goals value")

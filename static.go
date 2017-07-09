@@ -10,6 +10,7 @@ import (
 func StaticHandler(w http.ResponseWriter, r *http.Request) {
 
 	wwwRoot := os.Getenv("STATIC_DIR")
+	fmt.Println(wwwRoot)
 	// never serve static (etc) shit when not GET
 	if r.Method != "GET" {
 		http.NotFound(w, r)

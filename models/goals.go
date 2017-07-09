@@ -66,18 +66,18 @@ func CreateGoal(userID int, value string, weight int) (int, error) {
 	return int(insertID), nil
 }
 
-func getGoalID(value string) (int, error) {
+func getGoalID(name string) (int, error) {
 	query := `SELECT id FROM goals WHERE value = ?`
 	var goalID int
-	err := db.QueryRowx(query, value).Scan(&goalID)
+	err := db.QueryRowx(query, name).Scan(&goalID)
 	if err == nil {
 		return int(goalID), nil
 	} else if err != sql.ErrNoRows {
 		return 0, err
 	}
 
-	query = `INSERT INTO goals (value) VALUES (?)`
-	result, err := db.Exec(query, value)
+	query = `INSERT INTO goals (name) VALUES (?)`
+	result, err := db.Exec(query, name)
 	if err != nil {
 		return 0, err
 	}
